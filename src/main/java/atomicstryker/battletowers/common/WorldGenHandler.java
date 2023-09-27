@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import com.gibby.dungeon.Dungeons;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ChunkCoordinates;
@@ -61,6 +62,12 @@ public class WorldGenHandler implements IWorldGenerator {
     @Override
     public void generate(Random random, int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator,
         IChunkProvider chunkProvider) {
+        if(world.provider.dimensionId == Dungeons.sunsetDimensionId) {
+            return;
+        }
+        if(world.provider.dimensionId == Dungeons.montaneDungeonDimensionId) {
+            return;
+        }
         BiomeGenBase target = world.getBiomeGenForCoords(chunkX, chunkZ);
         if (target != BiomeGenBase.hell && getIsBiomeAllowed(target) && getIsChunkProviderAllowed(chunkProvider)) {
             if (world != lastWorld) {
