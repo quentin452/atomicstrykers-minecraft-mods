@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldType;
 
 public class AS_WorldGenTower {
 
@@ -38,6 +39,7 @@ public class AS_WorldGenTower {
         int countElse = 0;
 
         for (int ccounter = 0; ccounter < candidatecount; ccounter++) {
+            if (world.getWorldInfo().getTerrainType() != WorldType.FLAT) {
             int pair[] = candidates[ccounter];
             int checkBlockY = getSurfaceBlockHeight(world, ix + pair[0], kz + pair[1]);
 
@@ -74,6 +76,7 @@ public class AS_WorldGenTower {
                     return -1;
                 }
             }
+            }
         }
 
         // System.err.println("Snow: "+countSnow+" Sand: "+countSand+" Water: "+countWater+" else: "+countElse);
@@ -105,6 +108,7 @@ public class AS_WorldGenTower {
     }
 
     public void generate(World world, int ix, int jy, int kz, int towerchoice, boolean underground) {
+        if (world.getWorldInfo().getTerrainType() != WorldType.FLAT) {
         TowerTypes towerChosen = TowerTypes.values()[towerchoice];
 
         Block towerWallBlockID = towerChosen.getWallBlockID();
@@ -469,6 +473,7 @@ public class AS_WorldGenTower {
                 + kz
                 + " ], underground: "
                 + underground);
+        }
     }
 
     private void buildFloorPiece(World world, int i, int j, int k, Block towerFloorBlockID, int towerFloorMeta) {
@@ -481,9 +486,11 @@ public class AS_WorldGenTower {
 
     private void buildWallPiece(World world, int i, int j, int k, Block towerWallBlockID, int floor,
         int floorIterator) {
+        if (world.getWorldInfo().getTerrainType() != WorldType.FLAT) {
         world.setBlock(i, j, k, towerWallBlockID, 0, 3);
         if (floor == 1 && floorIterator == 4) {
             fillTowerBaseToGround(world, i, j, k, towerWallBlockID);
+        }
         }
     }
 
@@ -498,12 +505,15 @@ public class AS_WorldGenTower {
     private int getSurfaceBlockHeight(World world, int x, int z) {
         int h = 50;
 
-        do {
-            h++;
-        } while (world.getBlock(x, h, z) != Blocks.air && !isFoliageBlockID(world.getBlock(x, h, z)));
+        if (world.getWorldInfo().getTerrainType() != WorldType.FLAT) {
+            do {
+                h++;
+            } while (world.getBlock(x, h, z) != Blocks.air && !isFoliageBlockID(world.getBlock(x, h, z)));
+        }
 
         return h - 1;
     }
+
 
     private boolean isFoliageBlockID(Block ID) {
         return (ID == Blocks.snow || ID == Blocks.tallgrass
