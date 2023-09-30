@@ -1,4 +1,4 @@
-# Arcana RPG Continuation
+# Battle Tower Continuation
 
 This mod is a fork of https://www.curseforge.com/minecraft/mc-mods/atomicstrykers-battle-towers
 
