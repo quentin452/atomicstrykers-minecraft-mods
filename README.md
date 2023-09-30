@@ -14,3 +14,9 @@ This mod require [Arcana RPG Continuation](https://legacy.curseforge.com/minecra
 Add me on discord : iamacatfr
 
 Discord server : https://discord.gg/ZnmHKJzKkZ
+
+# Fix
+
+Fix crash with Arcana Rpg
+
+Fix Cascading worldgen in FlatWorld
