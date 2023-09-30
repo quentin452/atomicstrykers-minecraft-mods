@@ -4,6 +4,8 @@ This mod is a fork of https://www.curseforge.com/minecraft/mc-mods/atomicstryker
 
 To see new changes thats maked in the fork you can see https://github.com/quentin452/Arcana-RPG/wiki
 
+The original mod : https://legacy.curseforge.com/minecraft/mc-mods/atomicstrykers-battle-towers
+
 # Discord
 
 Add me on discord : iamacatfr
