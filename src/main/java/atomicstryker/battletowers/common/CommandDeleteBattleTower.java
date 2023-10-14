@@ -30,15 +30,15 @@ public class CommandDeleteBattleTower extends CommandBattleTowers {
                 (Object) astring);
         } else {
             try {
-                int x = Integer.valueOf(astring[0]);
-                int z = Integer.valueOf(astring[1]);
+                int x = Integer.parseInt(astring[0]);
+                int z = Integer.parseInt(astring[1]);
                 TowerPosition tp = WorldGenHandler.deleteNearestTower(icommandsender.getEntityWorld(), x, z);
                 if (tp != null) {
                     FMLCommonHandler.instance()
                         .getFMLLogger()
                         .log(
                             Level.INFO,
-                            icommandsender.getCommandSenderName() + ": Battletower deleted: " + tp.toString());
+                            icommandsender.getCommandSenderName() + ": Battletower deleted: " + tp);
                     for (Object o : icommandsender.getEntityWorld()
                         .getEntitiesWithinAABB(
                             AS_EntityGolem.class,

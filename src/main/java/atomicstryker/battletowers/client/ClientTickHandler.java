@@ -28,7 +28,7 @@ public class ClientTickHandler {
         Minecraft mc = FMLClientHandler.instance()
             .getClient();
 
-        if (mc.currentScreen != null && mc.currentScreen instanceof GuiChest) {
+        if (mc.currentScreen instanceof GuiChest) {
             List<?> ents = mc.theWorld.getEntitiesWithinAABBExcludingEntity(
                 mc.thePlayer,
                 AxisAlignedBB.getBoundingBox(
@@ -40,8 +40,7 @@ public class ClientTickHandler {
                     mc.thePlayer.posZ + 8D));
             if (!ents.isEmpty()) {
                 for (int i = ents.size() - 1; i >= 0; i--) {
-                    if (ents.get(i) instanceof AS_EntityGolem) {
-                        AS_EntityGolem golem = (AS_EntityGolem) ents.get(i);
+                    if (ents.get(i) instanceof AS_EntityGolem golem) {
                         ChestAttackedPacket packet = new ChestAttackedPacket(
                             mc.thePlayer.getGameProfile()
                                 .getName(),
@@ -70,11 +69,10 @@ public class ClientTickHandler {
                     AxisAlignedBB.getBoundingBox(x - 7D, y - 7D, z - 7D, x + 7D, y + 7D, z + 7D));
                 if (!ents.isEmpty()) {
                     for (int i = ents.size() - 1; i >= 0; i--) {
-                        if (ents.get(i) instanceof AS_EntityGolem) {
+                        if (ents.get(i) instanceof AS_EntityGolem golem) {
                             boolean multiplayer = mc.theWorld.isRemote;
 
-                            AS_EntityGolem golem = (AS_EntityGolem) ents.get(i);
-                            Object progressHack = null;
+                            Object progressHack;
                             float progress = 0;
                             try {
                                 progressHack = ReflectionHelper

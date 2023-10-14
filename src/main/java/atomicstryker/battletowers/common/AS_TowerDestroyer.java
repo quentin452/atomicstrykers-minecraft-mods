@@ -10,19 +10,15 @@ import net.minecraft.world.World;
 public class AS_TowerDestroyer {
 
     public Entity player;
-    private int xGolem;
-    private int yGolem;
-    private int zGolem;
-    private World world;
+    private final int xGolem;
+    private final int yGolem;
+    private final int zGolem;
+    private final World world;
     private long triggerTime;
     private long lastExplosionSoundTime;
     private final int maxfloor = 6;
     private int floor = maxfloor;
-    private final int floorDistance = 7;
-    private final float explosionPower = 10F;
 
-    private final long initialExplosionDelay = 15000L;
-    private final long perFloorExplosionDelay = 5000L;
     private boolean deleteMe = false;
 
     public AS_TowerDestroyer(World worldObj, ChunkCoordinates coords, long time, Entity golemkiller) {
@@ -45,6 +41,9 @@ public class AS_TowerDestroyer {
             return;
         }
 
+        float explosionPower = 10F;
+        long initialExplosionDelay = 15000L;
+        long perFloorExplosionDelay = 5000L;
         if (floor == maxfloor && System.currentTimeMillis() > triggerTime + initialExplosionDelay) {
             triggerTime = System.currentTimeMillis();
 
@@ -105,6 +104,7 @@ public class AS_TowerDestroyer {
     }
 
     private double yCoord() {
+        int floorDistance = 7;
         return yGolem - (floorDistance * Math.abs(maxfloor - floor));
     }
 

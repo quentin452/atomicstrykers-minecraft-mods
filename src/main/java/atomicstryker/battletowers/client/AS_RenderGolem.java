@@ -12,8 +12,8 @@ import atomicstryker.battletowers.common.AS_EntityGolem;
 
 public class AS_RenderGolem extends RenderBiped {
 
-    private static ResourceLocation texSleep = new ResourceLocation("battletowers", "textures/model/golemdormant.png");
-    private static ResourceLocation texAwake = new ResourceLocation("battletowers", "textures/model/golem.png");
+    private static final ResourceLocation texSleep = new ResourceLocation("battletowers", "textures/model/golemdormant.png");
+    private static final ResourceLocation texAwake = new ResourceLocation("battletowers", "textures/model/golem.png");
 
     public AS_RenderGolem() {
         super(new ModelBiped(), 1.0F);

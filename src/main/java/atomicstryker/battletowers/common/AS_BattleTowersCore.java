@@ -93,7 +93,7 @@ public class AS_BattleTowersCore {
 
         EntityRegistry.registerModEntity(AS_EntityGolemFireball.class, "Golem Fireball", 2, this, 25, 5, true);
 
-        towerDestroyers = new HashSet<AS_TowerDestroyer>();
+        towerDestroyers = new HashSet<>();
 
         GameRegistry.registerWorldGenerator(new WorldGenHandler(), 0);
     }

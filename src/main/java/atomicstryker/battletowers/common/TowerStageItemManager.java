@@ -34,7 +34,7 @@ public class TowerStageItemManager {
         minAmount = new int[elements.length];
         maxAmount = new int[elements.length];
 
-        ArrayList<Integer> validItemIndexes = new ArrayList<Integer>();
+        ArrayList<Integer> validItemIndexes = new ArrayList<>();
         for (int i = 0; i < elements.length; i++) {
             String[] settings = elements[i].trim()
                 .split("-");
@@ -151,7 +151,7 @@ public class TowerStageItemManager {
                 WeightedRandomChestContent[] list = ChestGenHooks.getInfo(split[1])
                     .getItems(rand);
                 if (WeightedRandom.getTotalWeight(list) > 0) {
-                    WeightedRandomChestContent.generateChestContents(rand, list, teChest, Integer.valueOf(split[2]));
+                    WeightedRandomChestContent.generateChestContents(rand, list, teChest, Integer.parseInt(split[2]));
                 }
             }
         }

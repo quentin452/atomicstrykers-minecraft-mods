@@ -15,10 +15,10 @@ public class AS_WorldGenTower {
 
     public String failState;
 
-    private static int candidates[][] = { { 4, -5 }, { 4, 0 }, { 4, 5, }, { 0, -5 }, { 0, 0 }, { 0, 5, }, { -4, -5 },
+    private static final int[][] candidates = { { 4, -5 }, { 4, 0 }, { 4, 5, }, { 0, -5 }, { 0, 0 }, { 0, 5, }, { -4, -5 },
         { -4, 0, }, { -4, 5 } };
 
-    private static int candidatecount = candidates.length;
+    private static final int candidatecount = candidates.length;
     private final static int maxHoleDepthInBase = 22;
 
     /**
@@ -30,7 +30,6 @@ public class AS_WorldGenTower {
      * @return -1 when no tower should be able to spawn, else Towerchosen enum ordinal
      */
     public int getChosenTowerOrdinal(World world, Random random, int ix, int jy, int kz) {
-        int centerblockY = jy;
         TowerTypes towerChosen;
         int countWater = 0;
         int countSand = 0;
@@ -40,7 +39,7 @@ public class AS_WorldGenTower {
 
         for (int ccounter = 0; ccounter < candidatecount; ccounter++) {
             if (world.getWorldInfo().getTerrainType() != WorldType.FLAT) {
-            int pair[] = candidates[ccounter];
+            int[] pair = candidates[ccounter];
             int checkBlockY = getSurfaceBlockHeight(world, ix + pair[0], kz + pair[1]);
 
             Block ID = world.getBlock(ix + pair[0], checkBlockY, kz + pair[1]);
@@ -55,8 +54,8 @@ public class AS_WorldGenTower {
                 countFoliage++;
             } else countElse++;
 
-            if (Math.abs(checkBlockY - centerblockY) > maxHoleDepthInBase) {
-                failState = "Uneven Surface, diff value: " + Math.abs(checkBlockY - centerblockY);
+            if (Math.abs(checkBlockY - jy) > maxHoleDepthInBase) {
+                failState = "Uneven Surface, diff value: " + Math.abs(checkBlockY - jy);
                 return -1;
             }
 
@@ -406,7 +405,7 @@ public class AS_WorldGenTower {
 
             if (towerChosen != TowerTypes.Null) {
                 // chest
-                TowerStageItemManager floorChestManager = null;
+                TowerStageItemManager floorChestManager;
                 if (!underground) {
                     floorChestManager = topFloor ? WorldGenHandler.getTowerStageManagerForFloor(10, world.rand)
                         : WorldGenHandler.getTowerStageManagerForFloor(floor, world.rand);
@@ -571,11 +570,11 @@ public class AS_WorldGenTower {
         Netherrack(Blocks.netherrack, Blocks.glowstone, Blocks.soul_sand, 0, Blocks.nether_brick_stairs),
         Jungle(Blocks.mossy_cobblestone, Blocks.web, Blocks.dirt, 0, Blocks.jungle_stairs);
 
-        private Block wallBlockID;
-        private Block lightBlockID;
-        private Block floorBlockID;
-        private int floorBlockMetaData;
-        private Block stairBlockID;
+        private final Block wallBlockID;
+        private final Block lightBlockID;
+        private final Block floorBlockID;
+        private final int floorBlockMetaData;
+        private final Block stairBlockID;
 
         TowerTypes(Block a, Block b, Block c, int d, Block e) {
             this.wallBlockID = a;

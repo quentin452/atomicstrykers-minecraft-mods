@@ -45,8 +45,7 @@ public class ChestAttackedPacket implements IPacket {
             .func_152612_a(playerName);
         if (p != null) {
             Entity e = p.worldObj.getEntityByID(golemEntityID);
-            if (e != null && e instanceof AS_EntityGolem) {
-                AS_EntityGolem golem = (AS_EntityGolem) e;
+            if (e instanceof AS_EntityGolem golem) {
                 golem.setAwake();
                 golem.setTarget(p);
             }

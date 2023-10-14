@@ -106,12 +106,12 @@ public class AS_EntityGolem extends EntityMob implements IEntityAdditionalSpawnD
     @Override
     protected void entityInit() {
         super.entityInit();
-        this.dataWatcher.addObject(16, new Integer(Integer.valueOf(1))); // dormant datawatcher
+        this.dataWatcher.addObject(16, 1); // dormant datawatcher
     }
 
     public void setDormant() {
         if (!worldObj.isRemote) {
-            this.dataWatcher.updateObject(16, new Integer(Integer.valueOf(1)));
+            this.dataWatcher.updateObject(16, 1);
         }
     }
 
@@ -125,7 +125,7 @@ public class AS_EntityGolem extends EntityMob implements IEntityAdditionalSpawnD
                     ((rand.nextFloat() - rand.nextFloat()) * 0.2F + 1.0F) * 1.8F);
             }
 
-            this.dataWatcher.updateObject(16, new Integer(Integer.valueOf(0)));
+            this.dataWatcher.updateObject(16,0);
         }
     }
 
@@ -251,8 +251,7 @@ public class AS_EntityGolem extends EntityMob implements IEntityAdditionalSpawnD
 
             boolean targetNearby = (getEntityToAttack().getDistanceSqToEntity(this) < 6F * 6F);
 
-            if (!targetNearby || explosionAttack == 1
-                || (targetNearby && ((this.posY - getEntityToAttack().posY) > 0.3D))) {
+            if (!targetNearby || explosionAttack == 1 || this.posY - getEntityToAttack().posY > 0.3D) {
                 rageCounter -= 2;
                 // System.out.println("Golem losing patience: "+rageCounter);
             } else {
@@ -280,7 +279,7 @@ public class AS_EntityGolem extends EntityMob implements IEntityAdditionalSpawnD
         if (!worldObj.isRemote) {
             double diffX = getEntityToAttack().posX - posX;
             double diffY = (getEntityToAttack().boundingBox.minY + (double) (getEntityToAttack().height / 2.0F))
-                - (posY + (double) (height * 0.8D));
+                - (posY + (height * 0.8D));
             double diffZ = getEntityToAttack().posZ - posZ;
 
             renderYawOffset = rotationYaw = (-(float) Math.atan2(diffX, diffZ) * 180F) / (float) Math.PI;

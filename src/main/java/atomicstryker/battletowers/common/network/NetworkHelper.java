@@ -1,5 +1,6 @@
 package atomicstryker.battletowers.common.network;
 
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashSet;
 
@@ -17,12 +18,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 /**
- * 
+ *
  * Helper class to wrap the new 1.7 Netty channels and packets into something
  * resembling the older packet system. Create one instance of this for a Mod,
  * then use the helper methods to send Packets. Packet Handling is done inside
  * the packet classes themselves.
- * 
+ *
  * @author AtomicStryker
  *
  */
@@ -41,7 +42,7 @@ public class NetworkHelper {
     /**
      * Creates an instance of the NetworkHelper with included channels for client and server communication.
      * Automatically registers the necessary channels and discriminators for the supplied Packet classes.
-     * 
+     *
      * @param channelName          channel name to use, anything but already taken designations goes
      * @param handledPacketClasses provide the IPacket classes you want to use for communication here
      */
@@ -52,10 +53,8 @@ public class NetworkHelper {
         clientOutboundChannel = channelPair.get(Side.CLIENT);
         serverOutboundChannel = channelPair.get(Side.SERVER);
 
-        registeredClasses = new HashSet<Class<? extends IPacket>>(handledPacketClasses.length);
-        for (Class<? extends IPacket> c : handledPacketClasses) {
-            registeredClasses.add(c);
-        }
+        registeredClasses = new HashSet<>(handledPacketClasses.length);
+        registeredClasses.addAll(Arrays.asList(handledPacketClasses));
     }
 
     /**
@@ -66,29 +65,29 @@ public class NetworkHelper {
      * the other way around, so be careful using them bidirectional or avoid
      * doing that altogether.
      */
-    public static interface IPacket {
+    public interface IPacket {
 
         /**
          * Executed upon sending a Packet away. Put your arbitrary data into the ByteBuffer,
          * and retrieve it on the receiving side when readBytes is executed.
-         * 
+         *
          * @param ctx   channel context
          * @param bytes data being sent
          */
-        public void writeBytes(ChannelHandlerContext ctx, ByteBuf bytes);
+        void writeBytes(ChannelHandlerContext ctx, ByteBuf bytes);
 
         /**
          * Executed upon arrival of a Packet at a recipient. Byte order matches writeBytes exactly.
-         * 
+         *
          * @param ctx   channel context, you can send answers through here directly
          * @param bytes data being received
          */
-        public void readBytes(ChannelHandlerContext ctx, ByteBuf bytes);
+        void readBytes(ChannelHandlerContext ctx, ByteBuf bytes);
     }
 
     /**
      * Sends the supplied Packet from a client to the server
-     * 
+     *
      * @param packet
      */
     public void sendPacketToServer(IPacket packet) {
@@ -101,7 +100,7 @@ public class NetworkHelper {
 
     /**
      * Sends the supplied Packet from the server to the chosen Player
-     * 
+     *
      * @param packet
      * @param player
      */
@@ -117,7 +116,7 @@ public class NetworkHelper {
 
     /**
      * Sends a packet from the server to all currently connected players
-     * 
+     *
      * @param packet
      */
     public void sendPacketToAllPlayers(IPacket packet) {
@@ -130,7 +129,7 @@ public class NetworkHelper {
 
     /**
      * Sends a packet from the server to all players in a dimension around a location
-     * 
+     *
      * @param packet
      * @param tp
      */
@@ -146,7 +145,7 @@ public class NetworkHelper {
 
     /**
      * Sends a packet from the server to all players in a dimension
-     * 
+     *
      * @param packet
      * @param dimension
      */
@@ -178,7 +177,7 @@ public class NetworkHelper {
     /**
      * Internal Channel Codec, automatic discrimination and data forwarding
      */
-    private class ChannelCodec extends FMLIndexedMessageToMessageCodec<IPacket> {
+    private static class ChannelCodec extends FMLIndexedMessageToMessageCodec<IPacket> {
 
         @SafeVarargs
         public ChannelCodec(Class<? extends IPacket>... handledPacketClasses) {
@@ -188,7 +187,7 @@ public class NetworkHelper {
         }
 
         @Override
-        public void encodeInto(ChannelHandlerContext ctx, IPacket msg, ByteBuf bytes) throws Exception {
+        public void encodeInto(ChannelHandlerContext ctx, IPacket msg, ByteBuf bytes) {
             msg.writeBytes(ctx, bytes);
         }
 
@@ -200,12 +199,12 @@ public class NetworkHelper {
     }
 
     @Sharable
-    public class ChannelHandler extends SimpleChannelInboundHandler<IPacket> {
+    public static class ChannelHandler extends SimpleChannelInboundHandler<IPacket> {
 
         public ChannelHandler() {}
 
         @Override
-        protected void channelRead0(ChannelHandlerContext ctx, IPacket msg) throws Exception {
+        protected void channelRead0(ChannelHandlerContext ctx, IPacket msg) {
             // NOOP, just to prevent memory leaks
         }
     }
