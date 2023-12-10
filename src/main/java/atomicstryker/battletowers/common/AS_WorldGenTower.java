@@ -1,8 +1,5 @@
 package atomicstryker.battletowers.common;
 
-import java.util.Arrays;
-import java.util.Random;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -10,6 +7,10 @@ import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldType;
+import net.minecraft.world.biome.BiomeGenBase;
+
+import java.util.Arrays;
+import java.util.Random;
 
 public class AS_WorldGenTower {
 
@@ -19,8 +20,29 @@ public class AS_WorldGenTower {
         { -4, 0, }, { -4, 5 } };
 
     private static final int candidatecount = candidates.length;
-    private final static int maxHoleDepthInBase = 22;
+    private static final int maxHoleDepthInBase = 22;
+    /**
+     *
+     */
+    public int getChosenTowerOrdinal2(World world, Random random, int ix, int jy, int kz) {
+        TowerTypes towerChosen;
+        BiomeGenBase biome = world.getBiomeGenForCoordsBody(ix, kz);
 
+        if (biome == BiomeGenBase.icePlains || biome == BiomeGenBase.iceMountains || biome == BiomeGenBase.frozenOcean) {
+            towerChosen = TowerTypes.Ice;
+        } else if (biome == BiomeGenBase.desert || biome == BiomeGenBase.desertHills) {
+            towerChosen = TowerTypes.SandStone;
+        } else if (biome == BiomeGenBase.swampland) {
+            towerChosen = TowerTypes.CobbleStoneMossy;
+        } else {
+            if (random.nextInt(5) == 0) {
+                towerChosen = TowerTypes.SmoothStone;
+            } else {
+                towerChosen = TowerTypes.CobbleStone;
+            }
+        }
+        return towerChosen.ordinal();
+    }
     /**
      * @param world
      * @param random
@@ -28,6 +50,7 @@ public class AS_WorldGenTower {
      * @param jy
      * @param kz
      * @return -1 when no tower should be able to spawn, else Towerchosen enum ordinal
+     * THIS METHOD MAKE SOME CASCADING WORLDGENS BY THE USAGE OF getblock , that's why i made  getChosenTowerOrdinal2 that use directly biomes
      */
     public int getChosenTowerOrdinal(World world, Random random, int ix, int jy, int kz) {
         TowerTypes towerChosen;
@@ -36,73 +59,66 @@ public class AS_WorldGenTower {
         int countSnow = 0;
         int countFoliage = 0;
         int countElse = 0;
-
+        int radius = 5;
         for (int ccounter = 0; ccounter < candidatecount; ccounter++) {
             if (world.getWorldInfo().getTerrainType() != WorldType.FLAT) {
-            int[] pair = candidates[ccounter];
-            int checkBlockY = getSurfaceBlockHeight(world, ix + pair[0], kz + pair[1]);
+                int[] pair = candidates[ccounter];
+                int checkBlockY = getSurfaceBlockHeight(world, ix + pair[0], kz + pair[1]);
 
-            Block ID = world.getBlock(ix + pair[0], checkBlockY, kz + pair[1]);
+                for (int x = ix + pair[0] - radius; x <= ix + pair[0] + radius; x++) {
+                    for (int z = kz + pair[1] - radius; z <= kz + pair[1] + radius; z++) {
+                        Block currentBlock = world.getBlock(x, checkBlockY, z);
 
-            if (world.getBlock(ix + pair[0], checkBlockY + 1, kz + pair[1]) == Blocks.snow || ID == Blocks.ice) {
-                countSnow++;
-            } else if (ID == Blocks.sand || ID == Blocks.sandstone) {
-                countSand++;
-            } else if (ID == Blocks.water) {
-                countWater++;
-            } else if (ID == Blocks.leaves || ID == Blocks.waterlily || ID == Blocks.log || ID == Blocks.log2) {
-                countFoliage++;
-            } else countElse++;
+                        if (world.getBlock(x, checkBlockY + 1, z) == Blocks.snow || currentBlock == Blocks.ice) {
+                            countSnow++;
+                        } else if (currentBlock == Blocks.sand || currentBlock == Blocks.sandstone) {
+                            countSand++;
+                        } else if (currentBlock == Blocks.water) {
+                            countWater++;
+                        } else if (currentBlock == Blocks.leaves || currentBlock == Blocks.waterlily || currentBlock == Blocks.log || currentBlock == Blocks.log2) {
+                            countFoliage++;
+                        } else {
+                            countElse++;
+                        }
+                        if (Math.abs(checkBlockY - jy) > maxHoleDepthInBase) {
+                            failState = "Uneven Surface, diff value: " + Math.abs(checkBlockY - jy);
+                            return -1;
+                        }
+                        for (int ycounter2 = 1; ycounter2 <= 3; ycounter2++) {
+                            Block aboveBlock = world.getBlock(ix + pair[0], (checkBlockY + ycounter2), kz + pair[1]);
+                            if (isBannedBlockID(aboveBlock)) {
+                                failState = "Surface banned Block of ID: " + aboveBlock + " at height: " + ycounter2;
+                                return -1;
+                            }
+                        }
+                        for (int ycounter = 1; ycounter <= 5; ycounter++) {
+                            Block belowBlock = world.getBlock(ix + pair[0], checkBlockY - ycounter, kz + pair[1]);
 
-            if (Math.abs(checkBlockY - jy) > maxHoleDepthInBase) {
-                failState = "Uneven Surface, diff value: " + Math.abs(checkBlockY - jy);
-                return -1;
-            }
-
-            for (int ycounter2 = 1; ycounter2 <= 3; ycounter2++) {
-                ID = world.getBlock(ix + pair[0], (checkBlockY + ycounter2), kz + pair[1]);
-                if (isBannedBlockID(ID)) {
-                    failState = "Surface banned Block of ID: " + ID + " at height: " + ycounter2;
-                    return -1;
+                            if (belowBlock == Blocks.air || isBannedBlockID(belowBlock)) {
+                                failState = "Depth check - Banned Block or hole, Depth: " + ycounter + " ID: " + belowBlock;
+                                return -1;
+                            }
+                        }
+                    }
                 }
-            }
-
-            for (int ycounter = 1; ycounter <= 5; ycounter++) {
-                ID = world.getBlock(ix + pair[0], checkBlockY - ycounter, kz + pair[1]);
-
-                if (ID == Blocks.air || isBannedBlockID(ID)) {
-                    failState = "Depth check - Banned Block or hole, Depth: " + ycounter + " ID: " + ID;
-                    return -1;
-                }
-            }
             }
         }
-
-        // System.err.println("Snow: "+countSnow+" Sand: "+countSand+" Water: "+countWater+" else: "+countElse);
-
         int[] nums = { countWater, countSnow, countSand, countFoliage, countElse };
         Arrays.sort(nums);
         int result = nums[nums.length - 1];
-
-        // System.err.println("Picked max value of "+result);
-
         if (countSand == result) {
             towerChosen = TowerTypes.SandStone;
         } else if (countSnow == result) {
             towerChosen = TowerTypes.Ice;
-        } else if (countWater == result) {
+        } else if (countWater == result || countFoliage == result) {
             towerChosen = TowerTypes.CobbleStoneMossy;
-        } else if (countFoliage == result) {
-            towerChosen = TowerTypes.CobbleStoneMossy;
-        } else // standard is cobblestone, really rare should be nether
-        {
+        } else {
             if (random.nextInt(10) == 0) {
                 towerChosen = TowerTypes.Netherrack;
             } else {
                 towerChosen = (random.nextInt(5) == 0) ? TowerTypes.SmoothStone : TowerTypes.CobbleStone;
             }
         }
-
         return towerChosen.ordinal();
     }
 
@@ -503,23 +519,21 @@ public class AS_WorldGenTower {
 
     private int getSurfaceBlockHeight(World world, int x, int z) {
         int h = 50;
-
         if (world.getWorldInfo().getTerrainType() != WorldType.FLAT) {
-            do {
+            while (h < world.getHeightValue(x, z) &&
+                !isFoliageBlockID(world.getBlock(x, h, z))) {
                 h++;
-            } while (world.getBlock(x, h, z) != Blocks.air && !isFoliageBlockID(world.getBlock(x, h, z)));
+            }
         }
-
-        return h - 1;
+        return Math.max(0, h - 1);
     }
 
-
-    private boolean isFoliageBlockID(Block ID) {
-        return (ID == Blocks.snow || ID == Blocks.tallgrass
-            || ID == Blocks.deadbush
-            || ID == Blocks.log
-            || ID == Blocks.log2
-            || ID == Blocks.leaves);
+    private boolean isFoliageBlockID(Block block) {
+        return (block == Blocks.snow || block == Blocks.tallgrass
+            || block == Blocks.deadbush
+            || block == Blocks.log
+            || block == Blocks.log2
+            || block == Blocks.leaves);
     }
 
     private boolean isBuildableBlockID(Block ID) {

@@ -34,18 +34,18 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class WorldGenHandler implements IWorldGenerator {
 
-    private final static String fileName = "BattletowerPositionsFile.txt";
+    private static final String fileName = "BattletowerPositionsFile.txt";
 
-    private final static WorldGenHandler instance = new WorldGenHandler();
-    private HashMap<String, Boolean> biomesMap;
-    private HashMap<String, Boolean> providerMap;
-    private final static ConcurrentSkipListSet<TowerPosition> towerPositions = new ConcurrentSkipListSet<TowerPosition>();
+    private static final WorldGenHandler instance = new WorldGenHandler();
+    private final HashMap<String, Boolean> biomesMap;
+    private final HashMap<String, Boolean> providerMap;
+    private static final ConcurrentSkipListSet<TowerPosition> towerPositions = new ConcurrentSkipListSet<>();
     private static World lastWorld;
     private final AS_WorldGenTower generator;
 
     public WorldGenHandler() {
-        biomesMap = new HashMap<String, Boolean>();
-        providerMap = new HashMap<String, Boolean>();
+        biomesMap = new HashMap<>();
+        providerMap = new HashMap<>();
         generator = new AS_WorldGenTower();
 
         MinecraftForge.EVENT_BUS.register(this);
@@ -64,14 +64,9 @@ public class WorldGenHandler implements IWorldGenerator {
 
     @Override
     public void generate(Random random, int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator,
-        IChunkProvider chunkProvider) {
-        if (Loader.isModLoaded("gibby_dungeons")) {
-            if (world.provider.dimensionId == Dungeons.sunsetDimensionId) {
+                         IChunkProvider chunkProvider) {
+        if (Loader.isModLoaded("gibby_dungeons") && (world.provider.dimensionId == Dungeons.sunsetDimensionId || world.provider.dimensionId == Dungeons.montaneDungeonDimensionId)) {
                 return;
-            }
-            if (world.provider.dimensionId == Dungeons.montaneDungeonDimensionId) {
-                return;
-            }
         }
 
         BiomeGenBase target = world.getBiomeGenForCoords(chunkX, chunkZ);
@@ -83,7 +78,27 @@ public class WorldGenHandler implements IWorldGenerator {
                 loadPosFile(new File(getWorldSaveDir(world), fileName), world);
                 lastWorld = world;
             }
-            generateSurface(world, random, chunkX * 16, chunkZ * 16);
+
+            TowerPosition pos = canTowerSpawnAt(world, chunkX * 16, chunkZ * 16);
+            if (pos != null) {
+                towerPositions.add(pos);
+                int y = getSurfaceBlockHeight(world, chunkX * 16, chunkZ * 16);
+                if (y > 49) {
+                    pos.y = y;
+                    int choice = generator.getChosenTowerOrdinal2(world, random, chunkX * 16, y, chunkZ * 16);
+                    pos.type = choice;
+
+                    if (choice >= 0) {
+                        pos.underground = world.rand.nextInt(100) + 1 < AS_BattleTowersCore.instance.chanceTowerIsUnderGround;
+                        generator.generate(world, chunkX * 16, y, chunkZ * 16, choice, pos.underground);
+                        // System.out.println("Battle Tower spawned at [ "+chunkX * 16+" | "+chunkZ * 16+" ]");
+                    } else {
+                        // spawn failed, bugger
+                        System.out.printf("Tower Site [%d|%d] rejected: %s\n", pos.x, pos.z, generator.failState);
+                        towerPositions.remove(pos);
+                    }
+                }
+            }
         }
     }
 
@@ -115,37 +130,6 @@ public class WorldGenHandler implements IWorldGenerator {
         config.save();
         biomesMap.put(target.biomeName, result);
         return result;
-    }
-
-    private void generateSurface(World world, Random random, int xActual, int zActual) {
-        TowerPosition pos = canTowerSpawnAt(world, xActual, zActual);
-        if (pos != null) {
-            towerPositions.add(pos);
-            int y = getSurfaceBlockHeight(world, xActual, zActual);
-            if (y > 49) {
-                pos.y = y;
-                if (attemptToSpawnTower(world, pos, random, xActual, y, zActual)) {
-                    // System.out.println("Battle Tower spawned at [ "+xActual+" | "+zActual+" ]");
-                } else {
-                    // spawn failed, bugger
-                    System.out.printf("Tower Site [%d|%d] rejected: %s\n", pos.x, pos.z, generator.failState);
-                    towerPositions.remove(pos);
-                }
-            }
-        }
-    }
-
-    private boolean attemptToSpawnTower(World world, TowerPosition pos, Random random, int x, int y, int z) {
-        int choice = generator.getChosenTowerOrdinal(world, random, x, y, z);
-        pos.type = choice;
-
-        if (choice >= 0) {
-            pos.underground = world.rand.nextInt(100) + 1 < AS_BattleTowersCore.instance.chanceTowerIsUnderGround;
-            generator.generate(world, x, y, z, choice, pos.underground);
-            return true;
-        }
-
-        return false;
     }
 
     public static void generateTower(World world, int x, int y, int z, int type, boolean underground) {
@@ -191,7 +175,7 @@ public class WorldGenHandler implements IWorldGenerator {
             for (TowerPosition temp : towerPositions) {
                 int diffX = temp.x - xActual;
                 int diffZ = temp.z - zActual;
-                double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
+                double dist = Math.sqrt(diffX * (double)diffX + diffZ * diffZ);
                 mindist = Math.min(mindist, dist);
                 if (dist < AS_BattleTowersCore.instance.minDistanceBetweenTowers) {
                     // System.out.printf("refusing site coords [%d,%d], mindist %f\n", xActual, zActual, mindist);
@@ -306,19 +290,18 @@ public class WorldGenHandler implements IWorldGenerator {
         File file = new File(getWorldSaveDir(world), fileName);
 
         try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8))) {
-            String comments = """
-                # Behold! The Battletower position management file. Below, you see all data accumulated by AtomicStrykers Battletowers during the last run of this World.
-                # Data is noted as follows: Each line stands for one successful Battletower spawn. Data syntax is:
-                # xCoordinate yCoordinate zCoordinate towerType towerUnderground
-                # everything but the last value is an integer value. Towertypes values are:
-                # 0: Null, 1: Cobblestone, 2: Mossy Cobblestone, 3: Sandstone, 4: Ice, 5: Smoothstone, 6: Nether, 7: Jungle
-                #
-                # DO NOT EDIT THIS FILE UNLESS YOU ARE SURE OF WHAT YOU ARE DOING
-                #
-                # The primary function of this file is to enable regeneration or removal of spawned Battletowers.
-                # That is possible via commands /regenerateallbattletowers and /deleteallbattletowers.
-                # Do not change values once towers have spawned! Either do that before creating a World (put this file in a world named folder)...
-                # ... or use /deletebattletowers, exit the game, modify this file any way you want, load the world, then use /regeneratebattletowers!""";
+            String comments = "# Behold! The Battletower position management file. Below, you see all data accumulated by AtomicStrykers Battletowers during the last run of this World.\n" +
+                "# Data is noted as follows: Each line stands for one successful Battletower spawn. Data syntax is:\n" +
+                "# xCoordinate yCoordinate zCoordinate towerType towerUnderground\n" +
+                "# everything but the last value is an integer value. Towertypes values are:\n" +
+                "# 0: Null, 1: Cobblestone, 2: Mossy Cobblestone, 3: Sandstone, 4: Ice, 5: Smoothstone, 6: Nether, 7: Jungle\n" +
+                "#\n" +
+                "# DO NOT EDIT THIS FILE UNLESS YOU ARE SURE OF WHAT YOU ARE DOING\n" +
+                "#\n" +
+                "# The primary function of this file is to enable regeneration or removal of spawned Battletowers.\n" +
+                "# That is possible via commands /regenerateallbattletowers and /deleteallbattletowers.\n" +
+                "# Do not change values once towers have spawned! Either do that before creating a World (put this file in a world named folder)...\n" +
+                "# ... or use /deletebattletowers, exit the game, modify this file any way you want, load the world, then use /regeneratebattletowers!";
 
             pw.println(comments);
 
@@ -333,13 +316,10 @@ public class WorldGenHandler implements IWorldGenerator {
 
     private static File getWorldSaveDir(World world) {
         ISaveHandler worldsaver = world.getSaveHandler();
-
-        if (worldsaver.getChunkLoader(world.provider) instanceof AnvilChunkLoader loader) {
-
-            for (Field f : loader.getClass()
-                .getDeclaredFields()) {
-                if (f.getType()
-                    .equals(File.class)) {
+        if (worldsaver.getChunkLoader(world.provider) instanceof AnvilChunkLoader) {
+            AnvilChunkLoader loader = (AnvilChunkLoader) worldsaver.getChunkLoader(world.provider);
+            for (Field f : loader.getClass().getDeclaredFields()) {
+                if (f.getType().equals(File.class)) {
                     try {
                         f.setAccessible(true);
                         return (File) f.get(loader);
@@ -349,7 +329,6 @@ public class WorldGenHandler implements IWorldGenerator {
                 }
             }
         }
-
         return null;
     }
 
