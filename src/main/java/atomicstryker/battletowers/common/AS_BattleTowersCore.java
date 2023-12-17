@@ -265,7 +265,7 @@ public class AS_BattleTowersCore {
             .sendPacketToAllPlayers(
                 new S02PacketChat(
                     new ChatComponentText(
-                        "A Battletower's Guardian has fallen! Without it's power, the Tower will collapse...")));
+                        "A Battletower's Guardian has fallen! Without its power, the Tower will collapse...")));
         instance.towerDestroyers.add(td);
     }
 
