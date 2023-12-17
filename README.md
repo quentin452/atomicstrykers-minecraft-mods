@@ -1,19 +1,28 @@
-# Battle Tower Continuation
+# Description
 
 This mod is a fork of https://www.curseforge.com/minecraft/mc-mods/atomicstrykers-battle-towers
 
-To see new changes thats maked in the fork you can see https://github.com/quentin452/Arcana-RPG/wiki
+# What this mod have for now?
 
-The original mod : https://legacy.curseforge.com/minecraft/mc-mods/atomicstrykers-battle-towers
+Go here : [Wiki](https://github.com/quentin452/battle-tower-continuation/wiki)
+
+# Links to descriptions of my projects.
+ 
+
+[*Github*](https://github.com/quentin452/battle-tower-continuation)
+
+[*Curseforge*](https://legacy.curseforge.com/minecraft/mc-mods/battle-tower-continuation)
 
 # Discord
 
-Add me on discord : iamacatfr
+Add me on discord : imacatfr
 
 Discord server : https://discord.gg/ZnmHKJzKkZ
 
-# Fix
+# Differences made in the fork
 
 Fix crash with Arcana Rpg
 
-Fix Cascading worldgen in FlatWorld
+Fix Some Cascading worldgen
+
+Reduce tps lags during world saving
